@@ -3,6 +3,7 @@
 # Naming Convention: PEP8
 # Credentials Management: .env file
 # Library: airbyte-api
+# Authentication: Bearer token with client and secret keys
 # Results Mapping: pandas DataFrame
 
 rules:
@@ -15,6 +16,7 @@ rules:
       - "airbyte_api_client: For interacting with Airbyte APIs."
       - "airbyte_api_client.api: Import API-specific modules."
       - "airbyte_api_client.configuration: To configure the API client."
+      - "requests: For token management and refreshing the token."
 
   - name: "Follow PEP8 Naming Conventions"
     action: "Ensure that variable, function, and class names adhere to PEP8 standards."
@@ -22,15 +24,15 @@ rules:
       - "Use snake_case for variable and function names."
       - "Use PascalCase for class names."
       - "Limit line length to 79 characters."
-      - "Use _ to prefix private function names."
 
   - name: "Store Sensitive Information Securely"
-    action: "All API keys, tokens, or sensitive credentials must be stored in a .env file."
+    action: "All API keys, tokens, client IDs, and client secrets must be stored in a .env file."
     details:
       - ".env file example:"
         content: |
-          AIRBYTE_API_URL=https://api.airbyte.com
-          AIRBYTE_API_KEY=your_api_key
+          AIRBYTE_API_URL=https://your-airbyte-instance.com
+          AIRBYTE_CLIENT_ID=your_client_id
+          AIRBYTE_CLIENT_SECRET=your_client_secret
       - "Load credentials using the python-dotenv library."
       - "Example code:"
         content: |
@@ -38,22 +40,54 @@ rules:
           import os
           load_dotenv()
           AIRBYTE_API_URL = os.getenv('AIRBYTE_API_URL')
-          AIRBYTE_API_KEY = os.getenv('AIRBYTE_API_KEY')
+          AIRBYTE_CLIENT_ID = os.getenv('AIRBYTE_CLIENT_ID')
+          AIRBYTE_CLIENT_SECRET = os.getenv('AIRBYTE_CLIENT_SECRET')
+
+  - name: "Authenticate Using Bearer Token"
+    action: "Use client and secret keys to fetch a new bearer token before making API requests."
+    details:
+      - "Add token refresh logic in a reusable function."
+      - "Example function to get a fresh token:"
+        content: |
+          import requests
+
+          def get_access_token():
+              """
+              Fetch a new access token using client ID and secret.
+
+              Returns:
+                  str: Bearer token.
+              """
+              url = f"{AIRBYTE_API_URL}/oauth/token"
+              payload = {
+                  "client_id": AIRBYTE_CLIENT_ID,
+                  "client_secret": AIRBYTE_CLIENT_SECRET,
+                  "grant_type": "client_credentials"
+              }
+              response = requests.post(url, json=payload)
+              response.raise_for_status()
+              return response.json()["access_token"]
 
   - name: "Configure airbyte-api Client"
-    action: "Always initialize and configure the Airbyte API client before making requests."
+    action: "Always initialize and configure the Airbyte API client with the refreshed token."
     details:
       - "Example setup:"
         content: |
           from airbyte_api_client import Configuration, ApiClient
-          from airbyte_api_client.api.workspaces_api import WorkspacesApi
 
-          # Configure the Airbyte API client
-          configuration = Configuration(
-              host=AIRBYTE_API_URL,
-              api_key={'Authorization': f"Bearer {AIRBYTE_API_KEY}"}
-          )
-          api_client = ApiClient(configuration)
+          def get_api_client():
+              """
+              Create and configure the Airbyte API client with a fresh token.
+
+              Returns:
+                  ApiClient: Configured Airbyte API client.
+              """
+              access_token = get_access_token()
+              configuration = Configuration(
+                  host=AIRBYTE_API_URL,
+                  api_key={'Authorization': f"Bearer {access_token}"}
+              )
+              return ApiClient(configuration)
 
   - name: "Map Results to pandas DataFrame"
     action: "Always convert API response data to pandas DataFrame for further processing."
@@ -83,6 +117,8 @@ rules:
     details:
       - "Example function to get workspaces:"
         content: |
+          from airbyte_api_client.api.workspaces_api import WorkspacesApi
+
           def get_workspaces(api_client):
               """
               Fetch all workspaces from the Airbyte API.
@@ -106,6 +142,7 @@ rules:
       - "Example:"
         content: |
           try:
+              api_client = get_api_client()
               df = get_workspaces(api_client)
               print(df.head())
           except Exception as e:
@@ -136,6 +173,7 @@ rules:
               mocked_response.return_value.workspaces = [
                   {"workspaceId": "123", "name": "Test Workspace"}
               ]
+              api_client = get_api_client()
               df = get_workspaces(api_client)
               assert "workspaceId" in df.columns
               assert "name" in df.columns
@@ -145,14 +183,11 @@ rules:
     details:
       - "Example:"
         content: |
-          def get_workspaces(api_client):
+          def get_access_token():
               """
-              Fetch all workspaces from the Airbyte API.
-
-              Args:
-                  api_client (ApiClient): Configured Airbyte API client.
+              Fetch a new access token using client ID and secret.
 
               Returns:
-                  pd.DataFrame: Workspace data as a DataFrame.
+                  str: Bearer token.
               """
               ...
