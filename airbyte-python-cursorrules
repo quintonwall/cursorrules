@@ -1,0 +1,130 @@
+# Cursor Rules Configuration File for Airbyte API Integration
+# Language: Python
+# Naming Convention: PEP8
+# Credentials Management: .env file
+# Results Mapping: pandas DataFrame
+
+rules:
+  - name: "Import Required Libraries"
+    action: "Always ensure the required libraries are imported at the top of the file."
+    details:
+      - "os: To load environment variables."
+      - "requests: For making API calls to Airbyte."
+      - "dotenv: To load .env file for credentials."
+      - "pandas: For mapping API results to DataFrame."
+      - "airbyte_api: For accessing Airbyte platform APIs"
+
+  - name: "Follow PEP8 Naming Conventions"
+    action: "Ensure that variable, function, and class names adhere to PEP8 standards."
+    details:
+      - "Use snake_case for variable and function names."
+      - "Use PascalCase for class names."
+      - "Limit line length to 79 characters."
+      - "Use _ to specify private functions."
+
+  - name: "Store Sensitive Information Securely"
+    action: "All API keys, tokens, or sensitive credentials must be stored in a .env file."
+    details:
+      - ".env file example:"
+        content: |
+          AIRBYTE_API_URL=https://your-airbyte-instance.com
+          AIRBYTE_API_KEY=your_api_key
+      - "Load credentials using the python-dotenv library."
+      - "Example code:"
+        content: |
+          from dotenv import load_dotenv
+          import os
+          load_dotenv()
+          AIRBYTE_API_URL = os.getenv('AIRBYTE_API_URL')
+          AIRBYTE_API_KEY = os.getenv('AIRBYTE_API_KEY')
+
+  - name: "Map Results to pandas DataFrame"
+    action: "Always convert API response data to pandas DataFrame for further processing."
+    details:
+      - "Add pandas as a dependency: `pip install pandas`."
+      - "Example function to convert API response to DataFrame:"
+        content: |
+          import pandas as pd
+
+          def map_to_dataframe(data, columns=None):
+              """
+              Convert API response data to pandas DataFrame.
+
+              Args:
+                  data (list or dict): JSON response data.
+                  columns (list, optional): List of column names to include.
+
+              Returns:
+                  pd.DataFrame: Data in tabular format.
+              """
+              df = pd.DataFrame(data)
+              if columns:
+                  df = df[columns]
+              return df
+
+  - name: "Create Reusable API Request Functions"
+    action: "Encapsulate API calls within reusable Python functions."
+    details:
+      - "Example function for GET request:"
+        content: |
+          import requests
+
+          def get_airbyte_data(endpoint, params=None):
+              """
+              Fetch data from the Airbyte API.
+
+              Args:
+                  endpoint (str): API endpoint to fetch data from.
+                  params (dict, optional): Query parameters for the request.
+
+              Returns:
+                  dict or list: Parsed JSON response from the API.
+              """
+              url = f"{AIRBYTE_API_URL}/{endpoint}"
+              headers = {
+                  "Authorization": f"Bearer {AIRBYTE_API_KEY}",
+                  "Content-Type": "application/json",
+              }
+              response = requests.get(url, headers=headers, params=params)
+              response.raise_for_status()
+              return response.json()
+
+  - name: "Use pandas for API Response Processing"
+    action: "Combine API calls with pandas for structured data manipulation."
+    details:
+      - "Example workflow:"
+        content: |
+          data = get_airbyte_data("api/v1/connections")
+          df = map_to_dataframe(data, columns=["connectionId", "name", "status"])
+          print(df.head())
+
+  - name: "Error Handling for API Requests"
+    action: "Implement robust error handling for API calls."
+    details:
+      - "Use try-except blocks to handle common exceptions."
+      - "Raise errors for debugging when necessary."
+      - "Example:"
+        content: |
+          try:
+              data = get_airbyte_data("api/v1/connections")
+              df = map_to_dataframe(data)
+          except requests.exceptions.RequestException as e:
+              print(f"An error occurred: {e}")
+        
+  - name: "Document Functions and Modules"
+    action: "Provide clear docstrings for all functions and modules."
+    details:
+      - "Example:"
+        content: |
+          def map_to_dataframe(data, columns=None):
+              """
+              Convert API response data to pandas DataFrame.
+
+              Args:
+                  data (list or dict): JSON response data.
+                  columns (list, optional): List of column names to include.
+
+              Returns:
+                  pd.DataFrame: Data in tabular format.
+              """
+              ...
