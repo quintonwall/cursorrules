@@ -29,7 +29,7 @@ rules:
     details:
       - ".env file example:"
         content: |
-          AIRBYTE_API_URL=https://your-airbyte-instance.com
+          AIRBYTE_API_URL=https://api.airbyte.com
           AIRBYTE_API_KEY=your_api_key
       - "Load credentials using the python-dotenv library."
       - "Example code:"
