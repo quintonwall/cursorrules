@@ -1,0 +1,53 @@
+# CursorRules file for Xcode Swift Project
+# Defines best practices for directory structure
+
+# Base directory
+ProjectRoot:
+  - README.md           # Project documentation
+  - LICENSE             # License file
+  - .gitignore          # Git ignore rules
+  - .xcodeproj          # Xcode project file
+  - .xcworkspace        # Xcode workspace file (if using CocoaPods or similar)
+
+# Primary folders
+Sources:                # All source code files
+  - App:                # Main app folder
+    - Models:           # Data models
+    - Views:            # User interface components
+    - ViewModels:       # Logic connecting views and models (MVVM pattern)
+    - Controllers:      # View controllers (MVC pattern)
+  - Resources:          # Assets and other resources
+    - Assets.xcassets   # Image and color assets
+    - LaunchScreen.storyboard # Launch screen storyboard
+    - Localizations:    # Localized strings and assets
+
+Tests:                  # Unit and UI tests
+  - UnitTests:          # Unit test cases
+  - UITests:            # UI test cases
+
+# Supporting files
+Configurations:         # Build and app configurations
+  - Debug.xcconfig      # Debug configuration settings
+  - Release.xcconfig    # Release configuration settings
+
+Extensions:             # Code extensions (e.g., for UIKit or SwiftUI)
+  - String+Extensions.swift
+  - Date+Extensions.swift
+
+Utilities:              # General utilities and helpers
+  - NetworkManager.swift
+  - APIConstants.swift
+
+# Example
+Example:                # Example apps or demos
+  - ExampleApp:         # Example implementation using the project
+
+Documentation:          # Developer documentation
+  - Docs.md             # Project documentation
+  - Tutorials:          # Tutorials for using the app
+
+# Notes
+- Organize files logically into respective folders based on MVC or MVVM architecture.
+- Ensure all resources are in `Resources`.
+- Follow naming conventions and avoid file duplication.
+- Unit tests mirror the structure of the `Sources` folder.
